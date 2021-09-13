@@ -114,13 +114,10 @@ $product = <<<DELIMETER
         <a href="item.php?id={$row['product_id']}"><img src="../resources/{$product_image}" alt=""></a>
         <div class="caption">
 
-            <h4 class="pull-right">&#36;{$row['product_price']}</h4>
-
-            <h4><a href="item.php?id={$row['product_id']}">{$row['product_title']}</a>
-            </h4>
+            <h4><a href="item.php?id={$row['product_id']}">{$row['product_title']}</a></h4>
+            <h4>Price: &#36;{$row['product_price']}</h4>
 
             <p class="text-center">
-            <br>
             <br>
             <br>
             <a class="btn btn-primary" target="_blank" href="../resources/cart.php?add={$row['product_id']}">Add to cart</a>
@@ -146,7 +143,7 @@ echo $product;
 
 function get_categories() {
 
-  $query = query("SELECT * FROM Categories");
+  $query = query("SELECT * FROM categories");
   confirm($query);
 
   while($row = fetch_array($query)) {
@@ -193,9 +190,9 @@ $product = <<<DELIMETER
         <img src="../resources/{$product_image}" alt="">
         <div class="caption">
             <h3>{$row['product_title']}</h3>
-            <p>{$row['short_desc']}</p>
+            <h4>&#36;{$row['product_price']}</h4>
             <p>
-                <a href="../resources/cart.php?add={$row['product_id']}" class="btn btn-primary">Add to portfolio</a> <a href="item.php?id={$row['product_id']}" class="btn btn-default">More Info</a>
+                <a href="../resources/cart.php?add={$row['product_id']}" class="btn btn-primary">Add to cart</a> <a href="item.php?id={$row['product_id']}" class="btn btn-default">More Info</a>
             </p>
         </div>
     </div>
@@ -235,9 +232,10 @@ $product = <<<DELIMETER
         <img src="../resources/{$product_image}" alt="">
         <div class="caption">
             <h3>{$row['product_title']}</h3>
-            <p>{$row['short_desc']}</p>
+
             <p>
-                <a href="../resources/cart.php?add={$row['product_id']}" class="btn btn-primary">Add to cart</a> <a href="item.php?id={$row['product_id']}" class="btn btn-default">More Info</a>
+                <a href="../resources/cart.php?add={$row['product_id']}" class="btn btn-primary">Add to cart</a>
+                <a href="item.php?id={$row['product_id']}" class="btn btn-default">More Info</a>
             </p>
         </div>
     </div>
@@ -334,7 +332,7 @@ $orders = <<<DELIMETER
   <td>{$row['order_transactions']}</td>
   <td>{$row['order_currency']}</td>
   <td>{$row['order_status']}</td>
-  <td><a class="btn btn-danger" href="../../resources/templates/back/delete_order.php?id={$row['order_id']}"><span class="glyphicon glyphicon-remove"></span></a></td>
+  <td><a class="btn btn-danger" href="index.php?delete_order.php?id={$row['order_id']}"><span class="glyphicon glyphicon-remove"></span></a></td>
 </tr>
 
 DELIMETER;
@@ -379,7 +377,7 @@ function get_products_in_admin() {
 
   <tr>
         <td>{$row['product_id']}</td>
-        <td>{$row['product_title']}<br>
+        <td><a href="index.php?edit_product&id={$row['product_id']}">{$row['product_title']}<br></a>
       <a href="index.php?edit_product&id={$row['product_id']}"><img width='100' src="../../resources/{$product_image}" alt=""></a>
         </td>
         <td>{$category}</td>
@@ -439,11 +437,13 @@ $product_price          = escape_string($_POST['product_price']);
 $product_description    = escape_string($_POST['product_description']);
 $short_desc             = escape_string($_POST['short_desc']);
 $product_quantity       = escape_string($_POST['product_quantity']);
-$product_image          = escape_string($_FILES['file']['name']);
-$image_temp_location    = escape_string($_FILES['file']['tmp_name']);
+$product_image          = ($_FILES['file']['name']);
+$image_temp_location    = ($_FILES['file']['tmp_name']);
 
 move_uploaded_file($image_temp_location , UPLOAD_DIRECTORY . DS . $product_image);
 
+$product_image              = escape_string($product_image);                           // mueve esto del otro ecom project para upload fotos ofline
+$image_temp_location        = escape_string($image_temp_location);
 
 $query = query("INSERT INTO products(product_title, product_category_id, product_price, product_description, short_desc, product_quantity, product_image) VALUES('{$product_title}', '{$product_category_id}', '{$product_price}', '{$product_description}', '{$short_desc}', '{$product_quantity}', '{$product_image}')");
 $last_id = last_id();
@@ -476,15 +476,15 @@ $product_price          = escape_string($_POST['product_price']);
 $product_description    = escape_string($_POST['product_description']);
 $short_desc             = escape_string($_POST['short_desc']);
 $product_quantity       = escape_string($_POST['product_quantity']);
-$product_image          = escape_string($_FILES['file']['name']);
-$image_temp_location    = escape_string($_FILES['file']['tmp_name']);
+$product_image          = ($_FILES['file']['name']);
+$image_temp_location    = ($_FILES['file']['tmp_name']);
 
 if(empty($product_image)) {
 
-  $get_pic = query("SELECT product_image FROM products WHERE product_id =" . escape_string($_GET['id']). "");
+  $get_pic = query("SELECT product_image FROM products WHERE product_id =" . escape_string($_GET['id']) . "");
   confirm($get_pic);
 
-  while($row = fetch_array($tget_pic)) {
+  while($pic = fetch_array($get_pic)) {
 
     $product_image = $pic['product_image'];
 
@@ -495,6 +495,8 @@ if(empty($product_image)) {
 
 move_uploaded_file($image_temp_location , UPLOAD_DIRECTORY . DS . $product_image);
 
+$product_image              = escape_string($product_image);                           // mueve esto del otro ecom project para upload fotos ofline
+$image_temp_location        = escape_string($image_temp_location);
 
 $query = "UPDATE products SET ";
 $query .= "product_title          = '{$product_title}'            , ";
@@ -502,8 +504,8 @@ $query .= "product_category_id    = '{$product_category_id}'      , ";
 $query .= "product_price          = '{$product_price}'            , ";
 $query .= "product_description    = '{$product_description}'      , ";
 $query .= "short_desc             = '{$short_desc}'               , ";
-$query .= "product_quantiy        = '{$product_quantity}'         , ";
-$query .= "product_image          = '{$product_image}'            , ";
+$query .= "product_quantity        = '{$product_quantity}'         , ";
+$query .= "product_image          = '{$product_image}'             ";
 $query .= "WHERE product_id=" . escape_string($_GET['id']);
 
 
@@ -562,7 +564,7 @@ if(empty($cat_title) || $cat_title == " ") {
 $insert_cat = query("INSERT INTO categories(cat_title) VALUES('{$cat_title}')");
 confirm($insert_cat);
 
-//set_message("Category was created");
+set_message("Category was created");
 
 
 

@@ -2,7 +2,6 @@
     <p class="lead">Crypto Merch</p>
     <div class="list-group">
 
-
         <?php
 
         get_categories();
